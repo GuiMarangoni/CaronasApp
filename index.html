@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Caronas</title>
 
-<link rel="manifest" href="manifest.json">
-
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -41,21 +39,15 @@ h1 {
 
 .buttons button {
   border: none;
-  padding: 8px 12px;
+  padding: 8px 10px;
   margin-left: 5px;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.green {
-  background: #22c55e;
-  color: white;
-}
-
-.red {
-  background: #ef4444;
-  color: white;
-}
+.green { background: #22c55e; color: white; }
+.red { background: #ef4444; color: white; }
+.delete { background: #6b7280; color: white; }
 
 input {
   padding: 10px;
@@ -75,11 +67,22 @@ input {
 
 .export {
   width: 100%;
-  margin-top: 15px;
+  margin-top: 10px;
   padding: 12px;
   border-radius: 10px;
   border: none;
   background: #f59e0b;
+  color: black;
+  font-weight: bold;
+}
+
+.update {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #10b981;
   color: black;
   font-weight: bold;
 }
@@ -107,6 +110,7 @@ input {
 
 <div id="list"></div>
 
+<button class="update" onclick="sortRanking()">Atualizar ranking</button>
 <button class="export" onclick="exportData()">Exportar para WhatsApp</button>
 
 <div class="history" id="history"></div>
@@ -144,6 +148,11 @@ function update(i,delta){
   log(people[i].name + ": " + people[i].rides);
 }
 
+function deletePerson(i){
+  log("Removido: " + people[i].name);
+  people.splice(i,1);
+}
+
 function addPerson(){
   const name = document.getElementById("nameInput").value;
   if(!name) return;
@@ -152,17 +161,22 @@ function addPerson(){
 }
 
 function exportData(){
-  let text = people.sort((a,b)=>b.rides-a.rides)
-    .map(p=>p.rides+" "+p.name).join("\n");
+  let text = people.map(p=>p.rides+" "+p.name).join("\n");
   navigator.clipboard.writeText(text);
   alert("Copiado!");
+}
+
+function sortRanking(){
+  people.sort((a,b)=>b.rides-a.rides);
+  save();
+  render();
 }
 
 function render(){
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  people.sort((a,b)=>b.rides-a.rides).forEach((p,i)=>{
+  people.forEach((p,i)=>{
     const div = document.createElement("div");
     div.className = "card";
 
@@ -183,8 +197,14 @@ function render(){
     minus.className="red";
     minus.onclick=()=>update(i,-1);
 
+    const del = document.createElement("button");
+    del.innerText = "x";
+    del.className="delete";
+    del.onclick=()=>deletePerson(i);
+
     btns.appendChild(plus);
     btns.appendChild(minus);
+    btns.appendChild(del);
 
     div.appendChild(name);
     div.appendChild(btns);

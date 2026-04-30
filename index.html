@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Caronas</title>
+
+<style>
+body { font-family: Arial; padding:20px; }
+button { margin:2px; }
+.green { background: #4CAF50; color:white; }
+.red { background: #f44336; color:white; }
+</style>
+
+<link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+<h1>Controle de Caronas</h1>
+
+<input id="nameInput" placeholder="Nome">
+<button onclick="addPerson()">Adicionar</button>
+
+<div id="list"></div>
+
+<button onclick="exportData()">Exportar</button>
+
+<h3>Histórico</h3>
+<div id="history"></div>
+
+<script>
+const STORAGE = "caronas_static";
+const HISTORY = "caronas_history";
+
+let people = JSON.parse(localStorage.getItem(STORAGE)) || [
+  {name:"JV",rides:21},{name:"Gus",rides:20},{name:"Bella",rides:16},
+  {name:"Lore",rides:12},{name:"Miguel",rides:7},{name:"Carol",rides:7},
+  {name:"GG",rides:7},{name:"Guto",rides:5},{name:"Igor",rides:4},
+  {name:"Elisa",rides:4},{name:"Gian",rides:4},{name:"Talita",rides:3},
+  {name:"Mashima",rides:3},{name:"VT",rides:2},{name:"Luiz",rides:2},
+  {name:"Hanna",rides:2},{name:"Nico",rides:1}
+];
+
+let history = JSON.parse(localStorage.getItem(HISTORY)) || [];
+
+function save(){
+  localStorage.setItem(STORAGE, JSON.stringify(people));
+  localStorage.setItem(HISTORY, JSON.stringify(history));
+}
+
+function log(msg){
+  history.unshift(new Date().toLocaleString()+" - "+msg);
+  save();
+  render();
+}
+
+function update(i,delta){
+  people[i].rides = Math.max(0, people[i].rides + delta);
+  log(people[i].name + ": " + people[i].rides);
+}
+
+function addPerson(){
+  const name = document.getElementById("nameInput").value;
+  if(!name) return;
+  people.push({name, rides:0});
+  log("Novo: "+name);
+}
+
+function exportData(){
+  let text = people.sort((a,b)=>b.rides-a.rides)
+    .map(p=>p.rides+" "+p.name).join("\n");
+  navigator.clipboard.writeText(text);
+  alert("Copiado!");
+}
+
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  people.sort((a,b)=>b.rides-a.rides).forEach((p,i)=>{
+    const div = document.createElement("div");
+    div.innerHTML = p.rides+" "+p.name;
+
+    const plus = document.createElement("button");
+    plus.innerText = "+";
+    plus.className="green";
+    plus.onclick=()=>update(i,1);
+
+    const minus = document.createElement("button");
+    minus.innerText = "-";
+    minus.className="red";
+    minus.onclick=()=>update(i,-1);
+
+    div.appendChild(plus);
+    div.appendChild(minus);
+
+    list.appendChild(div);
+  });
+
+  document.getElementById("history").innerHTML = history.join("<br>");
+}
+
+render();
+</script>
+
+</body>
+</html>
